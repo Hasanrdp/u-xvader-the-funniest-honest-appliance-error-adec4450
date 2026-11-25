@@ -44,8 +44,6 @@ def verify(path, data):
     """Read the file back and check it byte for byte against the pin."""
     with open(path, "rb") as handle:
         written = handle.read()
-    if written != data:
-        raise SystemExit("entry.txt bytes differ from the pinned line")
     if len(written) != EXPECTED_BYTES:
         raise SystemExit(
             "entry.txt is %d bytes, expected %d" % (len(written), EXPECTED_BYTES)
@@ -53,6 +51,8 @@ def verify(path, data):
     digest = hashlib.sha256(written).hexdigest()
     if digest != EXPECTED_SHA256:
         raise SystemExit("entry.txt sha256 %s, expected %s" % (digest, EXPECTED_SHA256))
+    if written != data:
+        raise SystemExit("entry.txt bytes differ from the pinned line")
     return True
 
 
@@ -63,8 +63,7 @@ def main():
     path = os.path.join(directory, "entry.txt")
     with open(path, "wb") as handle:
         handle.write(data)
-    verified = verify(path, data)
-    if not verified:
+    if not verify(path, data):
         raise SystemExit("read-back verification failed for entry.txt")
     print("wrote %s (%d bytes, sha256 %s)" % (path, EXPECTED_BYTES, EXPECTED_SHA256))
     return 0
